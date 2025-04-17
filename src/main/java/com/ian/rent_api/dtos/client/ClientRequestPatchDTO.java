@@ -1,4 +1,4 @@
-package com.ian.rent_api.models.client;
+package com.ian.rent_api.dtos.client;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -12,29 +12,27 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class Client {
-    @NotBlank
+public class ClientRequestPatchDTO {
     private String clientNumber;
 
-    @NotBlank
     @Size(min = 2, max = 50)
     private String name;
 
-    @NotBlank
     @Size(min = 2, max = 50)
     private String lastName;
 
-    @NotBlank
-    @Pattern(regexp = "\\d{10,15}", message = "Phone number must contain only digits and be between 10 and 15 characters long.")
+    @Pattern(regexp = "^\\d{10,15}$", message = "Phone number must contain only digits and be between 10 and 15 characters long.")
     private String phoneNumber;
 
-    @NotBlank
     @Email(message = "Invalid email format.")
     @Pattern(regexp = "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$", message = "Invalid email format.")
     private String email;
 
-    private boolean isFromMercadoLibre;
+    private Boolean isFromMercadoLibre;
 
-    @NotEmpty
     private List<Integer> consoleIds;
+
+    public boolean isNull(){
+        return clientNumber == null && name == null && lastName == null && phoneNumber == null && email == null && consoleIds == null;
+    }
 }

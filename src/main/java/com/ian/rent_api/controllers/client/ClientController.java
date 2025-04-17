@@ -1,6 +1,7 @@
 package com.ian.rent_api.controllers.client;
 
 import com.ian.rent_api.dtos.ApiResponse;
+import com.ian.rent_api.dtos.client.ClientRequestPatchDTO;
 import com.ian.rent_api.dtos.client.ClientResponseDTO;
 import com.ian.rent_api.models.client.Client;
 import com.ian.rent_api.services.client.ClientService;
@@ -47,5 +48,23 @@ public class ClientController {
         ApiResponse<ClientResponseDTO> response = ApiResponse.ofList(clients);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @PatchMapping("/client/{clientNumber}")
+    public ResponseEntity<ApiResponse<Client>> updateClient(@Valid @RequestBody ClientRequestPatchDTO client, @PathVariable String clientNumber) throws IllegalAccessException {
+        if(client.isNull()){
+            throw new IllegalArgumentException("No arguments provided to update");
+        }
+        clientService.updateClient(client, clientNumber);
+
+        ApiResponse<Client> apiResponse = ApiResponse.ofInformation("Client updated successfully");
+
+        return ResponseEntity.status(HttpStatus.OK).body(apiResponse);
+    }
+
+    @DeleteMapping("/client/{id}")
+    public ResponseEntity<Void> deleteClient(@PathVariable long id) {
+        clientService.deleteClient(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

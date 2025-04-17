@@ -1,5 +1,6 @@
 package com.ian.rent_api.repositories.client;
 
+import com.ian.rent_api.dtos.client.ClientRequestPatchDTO;
 import com.ian.rent_api.dtos.client.ClientResponseDTO;
 import com.ian.rent_api.models.client.Client;
 import com.ian.rent_api.models.client.Console;
@@ -107,5 +108,83 @@ public class ClientRepository implements IClientRepository{
         }, clientNumber);
 
         return clientDTOContainer[0];
+    }
+
+    @Override
+    public void updateClient(ClientRequestPatchDTO client, String clientNumber) {
+        StringBuilder query = new StringBuilder();
+        List<Object> parameters = new ArrayList<>();
+        boolean first = true;
+
+        query.append("UPDATE client SET ");
+
+        if (client.getName() != null) {
+            query.append("name = ?");
+            parameters.add(client.getName());
+            first = false;
+        }
+
+        if (client.getLastName() != null) {
+            if (!first) query.append(", ");
+            query.append("last_name = ?");
+            parameters.add(client.getLastName());
+            first = false;
+        }
+
+        if (client.getPhoneNumber() != null) {
+            if (!first) query.append(", ");
+            query.append("phone_number = ?");
+            parameters.add(client.getPhoneNumber());
+            first = false;
+        }
+
+        if (client.getEmail() != null) {
+            if (!first) query.append(", ");
+            query.append("email = ?");
+            parameters.add(client.getEmail());
+            first = false;
+        }
+
+        if (client.getClientNumber() != null) {
+            if (!first) query.append(", ");
+            query.append("registration_number = ?");
+            parameters.add(client.getClientNumber());
+            first = false;
+        }
+
+        if (client.getIsFromMercadoLibre() != null) {
+            if (!first) query.append(", ");
+            query.append("is_from_mercado_libre = ?");
+            parameters.add(client.getIsFromMercadoLibre());
+        }
+
+        query.append(" WHERE registration_number = ? RETURNING id");
+        parameters.add(clientNumber);
+
+       long idClient = jdbcTemplate.queryForObject(query.toString(), Long.class, parameters.toArray());
+
+       updateClientConsoles(client, idClient);
+    }
+
+    private void updateClientConsoles(ClientRequestPatchDTO client, long idClient) {
+        if(client.getConsoleIds() != null){
+            String queryDelete = "DELETE FROM client_console WHERE client_id = ?";
+            String queryInsert = "INSERT INTO client_console (client_id, console_id) VALUES (?, ?)";
+
+            jdbcTemplate.update(queryDelete, idClient);
+
+            for(int idConsole : client.getConsoleIds()) {
+                jdbcTemplate.update(queryInsert, idClient, idConsole);
+            }
+        }
+    }
+
+    @Override
+    public void deleteClient(long id) {
+        String queryClient = "DELETE FROM client WHERE id = ?";
+        String queryConsole = "DELETE FROM client_console WHERE client_id = ?";
+
+        jdbcTemplate.update(queryConsole, id);
+        jdbcTemplate.update(queryClient, id);
     }
 }
